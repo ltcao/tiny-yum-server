@@ -1,0 +1,97 @@
+- name: Adding thttpd RPM
+  copy:
+    src: files/thttpd
+    dest: /tmp
+    owner: root
+    group: wheel
+    mode: '0644'
+
+- name: Prepare for update
+  service:
+    name: thttpd
+    state: stopped
+  when: IS_UPGRADE
+
+- name: Installing thttpd
+  command: /bin/rpm --upgrade --replacepkgs --nodeps thttpd-*.rpm
+  args:
+    chdir: /tmp/thttpd
+    warn: false
+
+- name: Editing thttpd.conf
+  replace:
+    path: /etc/thttpd.conf
+    regexp: '(^#\shost.*)'
+    replace: 'host={{ ansible_default_ipv4.address }}'
+    owner: root
+    group: wheel
+    mode: '0664'
+    backup: no
+
+- name: Adding createrepo RPM
+  copy:
+    src: files/createrepo
+    dest: /tmp
+    owner: root
+    group: wheel
+    mode: '0644'
+
+- name: Installing createrepo tools
+  command: /bin/rpm --upgrade --replacepkgs --nodeps createrepo-*.rpm deltarpm-*.rpm python-deltarpm-*.rpm
+  args:
+    chdir: /tmp/createrepo
+    warn: false
+
+- name: Creating repo home
+  file:
+    path: "{{ repo_home }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: '0755'
+
+- name: Adding tiny YUM packages to repo
+  copy:
+    src: "files/{{ item }}/"
+    dest: "{{ repo_home }}"
+    owner: root
+    group: wheel
+    mode: '0644'
+  with_items:
+    - thttpd
+    - createrepo
+
+- name: Creating YUM repository structure
+  command: /bin/createrepo --quiet {{ repo_home }}
+
+- name: Updating YUM repository
+  command: /bin/createrepo --quiet --update {{ repo_home }}
+
+- name: Set permission bits for repo data
+  file:
+    path: "{{ repo_home }}/repodata"
+    state: directory
+    recurse: yes
+    owner: root
+    group: wheel
+    mode: '0644'
+
+- name: Set permission bits for repo data directory
+  file:
+    path: "{{ repo_home }}/repodata"
+    state: directory
+    owner: root
+    group: wheel
+    mode: '0755'
+
+- name: Enable YUM server
+  systemd:
+    name: thttpd
+    enabled: yes
+    state: started
+
+- name: Modify firewalld rules if firewalld is running
+  include_tasks:
+    file: firewalld.yml
+  when: FIREWALLD_ENABLED
+

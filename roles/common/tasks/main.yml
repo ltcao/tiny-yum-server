@@ -1,0 +1,7 @@
+- name: Gather service facts
+  service_facts:
+
+- set_fact:
+    HOST_IP: "{{ ansible_default_ipv4.address }}"
+    FIREWALLD_ENABLED: '{{ ansible_facts.services["firewalld.service"] is defined and ansible_facts.services["firewalld.service"].status|lower == "enabled" }}'
+    IS_UPGRADE: '{{ ansible_facts.services["thttpd.service"] is defined and ansible_facts.services["thttpd.service"].status|lower == "enabled" }}'

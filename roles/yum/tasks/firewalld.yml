@@ -1,0 +1,6 @@
+- name: Alter firewalld rules for YUM
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes

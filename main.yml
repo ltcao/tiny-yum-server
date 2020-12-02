@@ -1,0 +1,8 @@
+---
+- name: Create tiny YUM server
+  become: yes
+  become_method: sudo
+  hosts: *
+  roles:
+    - { role: common, tags: ['common'] }
+    - { role: yum, tags: ['yum'] }
