@@ -58,8 +58,7 @@
     group: wheel
     mode: '0644'
   with_items:
-    - thttpd
-    - createrepo
+    - ansible
 
 - name: Creating YUM repository structure
   command: /bin/createrepo --quiet {{ repo_home }}

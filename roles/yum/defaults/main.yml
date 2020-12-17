@@ -1,2 +1,2 @@
 httpd_root_path: "/var/www/thttpd"
-repo_home: "{{ httpd_root_path }}/centos-7"
+repo_home: "{{ httpd_root_path }}/amazon2"
